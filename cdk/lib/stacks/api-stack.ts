@@ -76,6 +76,10 @@ export class ApiStack extends Stack {
       desiredCount: 2,
     });
 
+    // This direction is incorrect due to causing cyclic dependencies
+    // props.rdsProxy.connections.allowFrom(fargateService, Port.POSTGRES);
+    fargateService.connections.allowTo(props.rdsProxy, Port.POSTGRES);
+
     const alb = new ApplicationLoadBalancer(this, 'ApplicationLoadBalancer', {
       vpc: props.vpc,
       internetFacing: false,
@@ -93,10 +97,6 @@ export class ApiStack extends Stack {
     });
 
     const httpAlbIntegration = new HttpAlbIntegration('DefaultIntegration', listener);
-
-    // // This direction is incorrect due to causing cyclic dependencies
-    // // props.rdsProxy.connections.allowFrom(fargateService, Port.POSTGRES);
-    fargateService.connections.allowTo(props.rdsProxy, Port.POSTGRES);
 
     const httpApi = new HttpApi(this, 'HttpApi', {
       createDefaultStage: false,
